@@ -1,0 +1,24 @@
+[package]
+name = "masof"
+version = "0.1.0"
+authors = ["Dan Aloni"]
+edition = "2018"
+
+[dependencies]
+unicode-width = "0.1.8"
+thiserror = "1"
+crossterm = { version = "0.19", features = ["event-stream"] }
+ansi_term = "0.12"
+lazy_static = "*"
+
+[dev-dependencies]
+structopt = "0.3"
+regex = "1"
+futures = "0.3"
+futures-timer = "2"
+tokio = {version = "1", features = ["rt", "process", "io-util"]}
+lazy_static = "1.4"
+log = "0.4.8"
+log-panics = { version = "2.0.0", features = ["with-backtrace"] }
+simple-logging = "2.0.2"
+bytes = "1"
