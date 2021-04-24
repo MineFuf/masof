@@ -1,10 +1,7 @@
 //! Double buffering terminal renderer
 
-use std::io::stdout;
 use std::io::Write;
-
 use ansi_term::{ANSIString, ANSIStrings};
-use crossterm::QueueableCommand;
 use crossterm::{
     cursor,
     cursor::MoveTo,
@@ -14,7 +11,7 @@ use crossterm::{
     terminal,
     terminal::{Clear, ClearType},
     terminal::{EnterAlternateScreen, LeaveAlternateScreen},
-    ExecutableCommand,
+    QueueableCommand,
 };
 use thiserror::Error;
 use unicode_width::UnicodeWidthChar;
@@ -172,18 +169,16 @@ impl Renderer {
         }
     }
 
-    pub fn term_on(&mut self) -> Result<(), Error> {
-        let mut stdout = stdout();
-
+    pub fn term_on(&mut self, tty: &mut impl Write) -> Result<(), Error> {
         terminal::enable_raw_mode()?;
-        stdout.execute(cursor::Hide)?;
+        tty.queue(cursor::Hide)?;
 
         let (x, y) = crossterm::terminal::size()?;
         self.on_resize(x, y);
 
         match &mut self.config {
             Config::FullScreen => {
-                stdout.execute(EnterAlternateScreen)?;
+                tty.queue(EnterAlternateScreen)?;
             }
             Config::BottomScreen(lines, pos) => {
                 // Make space for new lines
@@ -195,43 +190,44 @@ impl Renderer {
                         break;
                     }
 
-                    stdout.execute(style::ResetColor)?;
-                    stdout.execute(Print("\n"))?;
-                    stdout.execute(Clear(ClearType::UntilNewLine))?;
+                    tty.queue(style::ResetColor)?;
+                    tty.queue(Print("\n"))?;
+                    tty.queue(Clear(ClearType::UntilNewLine))?;
                 }
                 *pos = Some(position);
             }
         };
 
+        tty.flush()?;
+
         Ok(())
     }
 
-    pub fn term_off(&mut self) -> Result<(), Error> {
-        let mut stdout = stdout();
-
+    pub fn term_off(&mut self, tty: &mut impl Write) -> Result<(), Error> {
         match self.config {
             Config::FullScreen => {
-                stdout.execute(LeaveAlternateScreen)?;
+                tty.queue(LeaveAlternateScreen)?;
             }
             Config::BottomScreen(lines, position) => {
                 // Clear lines
                 let position = position.clone().take().unwrap_or((0, 0));
                 let l = std::cmp::min(lines, self.term_size.1);
                 let y = std::cmp::min(self.term_size.1 - l, position.1);
-                stdout.execute(MoveTo(position.0, y))?;
+                tty.queue(MoveTo(position.0, y))?;
                 for yl in 0..l {
-                    stdout.execute(style::ResetColor)?;
-                    stdout.execute(Clear(ClearType::UntilNewLine))?;
+                    tty.queue(style::ResetColor)?;
+                    tty.queue(Clear(ClearType::UntilNewLine))?;
                     if yl + 1 >= l && y != position.1 {
                         break;
                     }
-                    stdout.execute(Print("\n"))?;
+                    tty.queue(Print("\n"))?;
                 }
-                stdout.execute(MoveTo(position.0, y))?;
+                tty.queue(MoveTo(position.0, y))?;
             }
         };
 
-        stdout.execute(cursor::Show)?;
+        tty.queue(cursor::Show)?;
+        tty.flush()?;
         terminal::disable_raw_mode()?;
 
         Ok(())
@@ -338,7 +334,7 @@ impl Renderer {
         Ok(())
     }
 
-    pub fn end(&mut self) -> Result<(), Error> {
+    pub fn end(&mut self, tty: &mut impl Write) -> Result<(), Error> {
         let top_left = match self.config {
             Config::FullScreen => (0, 0),
             Config::BottomScreen(lines, position) => {
@@ -349,7 +345,6 @@ impl Renderer {
             }
         };
 
-        let mut stdout = stdout();
         let next = &self.next;
         let prev = &self.prev;
         let mut style = ContentStyle::default();
@@ -360,7 +355,7 @@ impl Renderer {
                 continue;
             }
 
-            stdout.queue(MoveTo(0, top_left.1 + y as u16))?;
+            tty.queue(MoveTo(0, top_left.1 + y as u16))?;
 
             // TODO: find a subrange that is modified and keep the rest of the line as
             // it is.
@@ -371,29 +366,29 @@ impl Renderer {
                             if style.background_color != content.style.background_color {
                                 match content.style.background_color {
                                     Some(x) => {
-                                        stdout.queue(SetBackgroundColor(x))?;
+                                        tty.queue(SetBackgroundColor(x))?;
                                     }
                                     None => {
-                                        stdout.queue(SetBackgroundColor(Color::Reset))?;
+                                        tty.queue(SetBackgroundColor(Color::Reset))?;
                                     }
                                 }
                             }
                             if style.foreground_color != content.style.foreground_color {
                                 match content.style.foreground_color {
                                     Some(x) => {
-                                        stdout.queue(SetForegroundColor(x))?;
+                                        tty.queue(SetForegroundColor(x))?;
                                     }
                                     None => {
-                                        stdout.queue(SetForegroundColor(Color::Reset))?;
+                                        tty.queue(SetForegroundColor(Color::Reset))?;
                                     }
                                 }
                             }
                             if style.attributes != content.style.attributes {
-                                stdout.queue(SetAttributes(content.style.attributes))?;
+                                tty.queue(SetAttributes(content.style.attributes))?;
                             }
                             style = content.style;
                         }
-                        stdout.queue(Print(content.c))?;
+                        tty.queue(Print(content.c))?;
                     }
                     _ => {}
                 }
@@ -401,13 +396,13 @@ impl Renderer {
         }
 
         if let Some(position) = next.cursor {
-            stdout.execute(MoveTo(position.0 + top_left.0, position.1 + top_left.1))?;
-            stdout.execute(cursor::Show)?;
+            tty.queue(MoveTo(position.0 + top_left.0, position.1 + top_left.1))?;
+            tty.queue(cursor::Show)?;
         } else {
-            stdout.execute(cursor::Hide)?;
+            tty.queue(cursor::Hide)?;
         }
 
-        stdout.flush()?;
+        tty.flush()?;
         self.full_refresh = false;
 
         std::mem::swap(&mut self.next, &mut self.prev);

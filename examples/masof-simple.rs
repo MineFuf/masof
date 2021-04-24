@@ -6,6 +6,7 @@ use futures::{select, FutureExt};
 use futures_timer::Delay;
 use std::path::PathBuf;
 use std::time::{Duration, Instant};
+use std::io::{Stdout, stdout};
 use structopt::StructOpt;
 use thiserror::Error;
 
@@ -93,17 +94,19 @@ impl Main {
     async fn run(mut self) -> Result<(), Error> {
         self.init_key_maps();
 
-        self.renderer.term_on()?;
-        let r = self.event_loop().await;
-        self.renderer.term_off()?;
+        let mut stdout = stdout();
+
+        self.renderer.term_on(&mut stdout)?;
+        let r = self.event_loop(&mut stdout).await;
+        self.renderer.term_off(&mut stdout)?;
 
         r
     }
 
-    async fn event_loop(&mut self) -> Result<(), Error> {
+    async fn event_loop(&mut self, stdout: &mut Stdout) -> Result<(), Error> {
         let mut reader = crossterm::event::EventStream::new();
 
-        self.redraw()?;
+        self.redraw(stdout)?;
 
         while !self.leave {
             let delay = Delay::new(Duration::from_millis(100));
@@ -125,7 +128,7 @@ impl Main {
                 }
             }
 
-            self.redraw()?;
+            self.redraw(stdout)?;
         }
 
         Ok(())
@@ -175,7 +178,7 @@ impl Main {
         Ok(())
     }
 
-    fn redraw(&mut self) -> Result<(), Error> {
+    fn redraw(&mut self, stdout: &mut Stdout) -> Result<(), Error> {
         self.renderer.begin()?;
         self.renderer.draw_str(
             10,
@@ -238,7 +241,7 @@ impl Main {
             self.renderer.set_cursor(None);
         }
 
-        self.renderer.end()?;
+        self.renderer.end(stdout)?;
 
         Ok(())
     }
