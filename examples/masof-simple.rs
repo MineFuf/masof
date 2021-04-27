@@ -190,6 +190,12 @@ impl Main {
         );
 
         self.renderer.draw(
+            30,
+            1,
+            &format!("masof-simple {:?}", std::time::SystemTime::now()),
+        );
+
+        self.renderer.draw(
             8,
             8,
             (

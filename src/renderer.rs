@@ -160,6 +160,20 @@ where
     }
 }
 
+impl<'a, 'b> Drawable<'a> for &'b str
+{
+    fn draw(&self, renderer: &mut Renderer, x: u16, y: u16) -> u16 {
+        renderer.draw_str(x, y, self, ContentStyle::default())
+    }
+}
+
+impl<'a, 'b> Drawable<'a> for &'b String
+{
+    fn draw(&self, renderer: &mut Renderer, x: u16, y: u16) -> u16 {
+        renderer.draw_str(x, y, self.as_str(), ContentStyle::default())
+    }
+}
+
 impl<'a, 'b> Drawable<'a> for &'b ANSIString<'a> {
     fn draw(&self, renderer: &mut Renderer, x: u16, y: u16) -> u16 {
         renderer.draw_ansi(x, y, self)
