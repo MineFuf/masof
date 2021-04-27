@@ -6,7 +6,7 @@ use crossterm::{
     cursor::MoveTo,
     event::Event,
     style,
-    style::{Color, ContentStyle, Print, SetAttributes, SetBackgroundColor, SetForegroundColor},
+    style::{Color, Colors, ContentStyle, Print, SetAttributes, SetBackgroundColor, SetForegroundColor},
     terminal,
     terminal::{Clear, ClearType},
     terminal::{EnterAlternateScreen, LeaveAlternateScreen},
@@ -157,6 +157,22 @@ where
 {
     fn draw(&self, renderer: &mut Renderer, x: u16, y: u16) -> u16 {
         renderer.draw_str(x, y, self.0.as_ref(), self.1)
+    }
+}
+
+impl<'a, S> Drawable<'a> for (S, Colors)
+where
+    S: AsRef<str> + 'a,
+{
+    fn draw(&self, renderer: &mut Renderer, x: u16, y: u16) -> u16 {
+        let mut m = ContentStyle::default();
+        if let Some(x) = self.1.background {
+            m = m.background(x);
+        }
+        if let Some(x) = self.1.foreground {
+            m = m.foreground(x);
+        }
+        renderer.draw_str(x, y, self.0.as_ref(), m)
     }
 }
 
