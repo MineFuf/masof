@@ -1,6 +1,5 @@
 //! Double buffering terminal renderer
 
-use std::io::Write;
 use ansi_term::{ANSIString, ANSIStrings};
 use crossterm::{
     cursor,
@@ -13,6 +12,7 @@ use crossterm::{
     terminal::{EnterAlternateScreen, LeaveAlternateScreen},
     QueueableCommand,
 };
+use std::io::Write;
 use thiserror::Error;
 use unicode_width::UnicodeWidthChar;
 
@@ -147,6 +147,37 @@ impl VirtualBuffer {
     }
 }
 
+pub trait Drawable<'a> {
+    fn draw(&self, renderer: &mut Renderer, x: u16, y: u16) -> u16;
+}
+
+impl<'a, S> Drawable<'a> for (S, ContentStyle)
+where
+    S: AsRef<str> + 'a,
+{
+    fn draw(&self, renderer: &mut Renderer, x: u16, y: u16) -> u16 {
+        renderer.draw_str(x, y, self.0.as_ref(), self.1)
+    }
+}
+
+impl<'a, 'b> Drawable<'a> for &'b ANSIString<'a> {
+    fn draw(&self, renderer: &mut Renderer, x: u16, y: u16) -> u16 {
+        renderer.draw_ansi(x, y, self)
+    }
+}
+
+impl<'a> Drawable<'a> for ANSIString<'a> {
+    fn draw(&self, renderer: &mut Renderer, x: u16, y: u16) -> u16 {
+        renderer.draw_ansi(x, y, self)
+    }
+}
+
+impl<'a> Drawable<'a> for ANSIStrings<'a> {
+    fn draw(&self, renderer: &mut Renderer, x: u16, y: u16) -> u16 {
+        renderer.draw_ansis(x, y, self)
+    }
+}
+
 impl Renderer {
     pub fn bottom_screen(mut self, min_nr_lines: u16) -> Self {
         self.set_bottom_screen(min_nr_lines);
@@ -270,6 +301,10 @@ impl Renderer {
         }
     }
 
+    pub fn draw<'a>(&mut self, x: u16, y: u16, drawable: impl Drawable<'a>) -> u16 {
+        drawable.draw(self, x, y)
+    }
+
     pub fn draw_str(&mut self, mut x: u16, y: u16, s: &str, style: ContentStyle) -> u16 {
         let start_x = x;
         for c in s.chars() {
@@ -315,7 +350,7 @@ impl Renderer {
         self.draw_str(x, y, &*s, content_style)
     }
 
-    pub fn draw_ansis<'a>(&mut self, mut x: u16, y: u16, s: ANSIStrings<'a>) -> u16 {
+    pub fn draw_ansis<'a>(&mut self, mut x: u16, y: u16, s: &ANSIStrings<'a>) -> u16 {
         let start_x = x;
 
         for i in s.0.iter() {

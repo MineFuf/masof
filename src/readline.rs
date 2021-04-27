@@ -92,7 +92,7 @@ impl ReadLine {
 
         v.push(style_map.main.paint(&self.strval));
 
-        renderer.draw_ansis(x, y, ANSIStrings(v.as_slice()));
+        renderer.draw(x, y, ANSIStrings(v.as_slice()));
     }
 
     pub fn get_cursor(&self) -> u16 {

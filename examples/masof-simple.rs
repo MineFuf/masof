@@ -4,9 +4,9 @@ use crossterm::event::Event;
 use futures::StreamExt;
 use futures::{select, FutureExt};
 use futures_timer::Delay;
+use std::io::{stdout, Stdout};
 use std::path::PathBuf;
 use std::time::{Duration, Instant};
-use std::io::{Stdout, stdout};
 use structopt::StructOpt;
 use thiserror::Error;
 
@@ -180,53 +180,63 @@ impl Main {
 
     fn redraw(&mut self, stdout: &mut Stdout) -> Result<(), Error> {
         self.renderer.begin()?;
-        self.renderer.draw_str(
+        self.renderer.draw(
             10,
             1,
-            &format!("masof-simple {:?}", std::time::SystemTime::now()),
-            ContentStyle::default(),
+            (
+                &format!("masof-simple {:?}", std::time::SystemTime::now()),
+                ContentStyle::default(),
+            ),
         );
 
-        self.renderer.draw_str(
+        self.renderer.draw(
             8,
             8,
-            &format!("mode {:?} (hit Enter to change, q to quit)", self.mode),
-            ContentStyle::default(),
+            (
+                &format!("mode {:?} (hit Enter to change, q to quit)", self.mode),
+                ContentStyle::default(),
+            ),
         );
 
         for i in 0..10 {
-            self.renderer.draw_str(
+            self.renderer.draw(
                 0,
                 i,
-                &format!("{:?}", i),
-                ContentStyle::default().foreground(Color::Rgb { r: 255, g: 0, b: 0 }),
+                (
+                    &format!("{:?}", i),
+                    ContentStyle::default().foreground(Color::Rgb { r: 255, g: 0, b: 0 }),
+                ),
             );
         }
 
         let time = (self.start_time.elapsed().as_millis() / 20) as u64;
         let x = (time % (self.renderer.width() as u64)) as u16;
 
-        self.renderer.draw_str(
+        self.renderer.draw(
             2 + x,
             3,
-            &"test test",
-            ContentStyle::default().foreground(Color::Rgb { r: 0, g: 255, b: 0 }),
+            (
+                &"test test",
+                ContentStyle::default().foreground(Color::Rgb { r: 0, g: 255, b: 0 }),
+            ),
         );
-        self.renderer.draw_str(
+        self.renderer.draw(
             4 + x,
             3,
-            &"test",
-            ContentStyle::default().foreground(Color::Rgb {
-                r: 0,
-                g: 255,
-                b: 255,
-            }),
+            (
+                &"test",
+                ContentStyle::default().foreground(Color::Rgb {
+                    r: 0,
+                    g: 255,
+                    b: 255,
+                }),
+            ),
         );
 
         if let Mode::Edit = self.mode {
             let l = self.renderer.height() - 1;
             self.renderer
-                .draw_ansi(0, l, &ansi_term::Style::default().paint(":"));
+                .draw(0, l, &ansi_term::Style::default().paint(":"));
             let pos = (1, l);
             self.read_line.draw(
                 pos.0,
