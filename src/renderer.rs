@@ -6,7 +6,7 @@ use crossterm::{
     cursor::MoveTo,
     event::Event,
     style,
-    style::{Color, Colors, ContentStyle, Print, SetAttributes, SetBackgroundColor, SetForegroundColor},
+    style::{Color, Colors, ContentStyle, Print, SetAttribute, SetAttributes, SetBackgroundColor, SetForegroundColor, Attribute},
     terminal,
     terminal::{Clear, ClearType},
     terminal::{EnterAlternateScreen, LeaveAlternateScreen},
@@ -466,6 +466,7 @@ impl Renderer {
                                 }
                             }
                             if style.attributes != content.style.attributes {
+                                tty.queue(SetAttribute(Attribute::Reset))?;
                                 tty.queue(SetAttributes(content.style.attributes))?;
                             }
                             style = content.style;
