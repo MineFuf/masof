@@ -190,6 +190,13 @@ impl<'a, 'b> Drawable<'a> for &'b String
     }
 }
 
+impl<'a> Drawable<'a> for char
+{
+    fn draw(&self, renderer: &mut Renderer, x: u16, y: u16) -> u16 {
+        renderer.draw_char(x, y, *self, ContentStyle::default())
+    }
+}
+
 impl<'a, 'b> Drawable<'a> for &'b ANSIString<'a> {
     fn draw(&self, renderer: &mut Renderer, x: u16, y: u16) -> u16 {
         renderer.draw_ansi(x, y, self)
@@ -346,6 +353,14 @@ impl Renderer {
         }
 
         x - start_x
+    }
+
+    pub fn draw_char(&mut self, x: u16, y: u16, c: char, style: ContentStyle) -> u16 {
+        if let Some(w) = self.next.putchar(x, y, c, style) {
+            w
+        } else {
+            0
+        }
     }
 
     pub fn draw_ansi<'a>(&mut self, x: u16, y: u16, s: &ANSIString<'a>) -> u16 {
