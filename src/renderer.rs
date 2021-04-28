@@ -429,6 +429,8 @@ impl Renderer {
         let prev = &self.prev;
         let mut style = ContentStyle::default();
 
+        tty.queue(crossterm::style::ResetColor)?;
+
         for y in 0..next.height as usize {
             if next.cells[y] == prev.cells[y] && !self.full_refresh {
                 // Skip unmodified lines.
