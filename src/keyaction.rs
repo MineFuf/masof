@@ -2,6 +2,7 @@
 
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 use std::collections::HashMap;
+use std::fmt::Write;
 
 #[derive(Debug, Hash, Copy, Clone, Default, Eq, PartialEq)]
 pub struct Modifiers {
@@ -91,6 +92,10 @@ impl<A> KeyMap<A> {
         }
     }
 
+    pub fn map(&self) -> &HashMap<KeyCombination, A> {
+        &self.map
+    }
+
     pub fn add_no_mods(&mut self, code: KeyCode, a: A) {
         self.map
             .insert(KeyCombination::Specific(code, Modifiers::default()), a);
@@ -134,12 +139,10 @@ impl<A> KeyMap<A> {
         None
     }
 
-    #[cfg(disable)]
-    pub fn describe(&self, output: &mut String, title: &str) {
-        let _ = writeln!(output, "# {}", title);
-        let _ = writeln!(output, "");
-
-        let mut action_to_keys = BTreeMap::new();
+    pub fn describe(&self, output: &mut String)
+        where A: std::fmt::Display + Ord
+    {
+        let mut action_to_keys = std::collections::BTreeMap::new();
         for (key, value) in self.map.iter() {
             use std::collections::btree_map;
             let v = match action_to_keys.entry(value) {
@@ -168,7 +171,7 @@ impl<A> KeyMap<A> {
                 output,
                 "    {:width$}  - {}",
                 str_keys.join(" / "),
-                action.describe(),
+                action,
                 width = 17
             );
         }
@@ -198,6 +201,10 @@ pub struct KeyTree<A> {
 impl<A> KeyTree<A> {
     pub fn new() -> Self {
         Self { map: KeyMap::new() }
+    }
+
+    pub fn map(&self) -> &KeyMap<TreeNode<A>> {
+        &self.map
     }
 
     pub fn add_vector(&mut self, _code: Vec<KeyCombination>, _a: A) {}
