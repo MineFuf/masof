@@ -108,6 +108,13 @@ impl<A> KeyMap<A> {
         );
     }
 
+    pub fn add_shift(&mut self, code: KeyCode, a: A) {
+        self.map.insert(
+            KeyCombination::Specific(code, Modifiers::default().shift()),
+            a,
+        );
+    }
+
     pub fn add_char_no_handler(&mut self, a: A) {
         self.map
             .insert(KeyCombination::AllChars(Modifiers::default()), a);
@@ -215,6 +222,10 @@ impl<A> KeyTree<A> {
 
     pub fn add_ctrl(&mut self, code: KeyCode, a: A) {
         self.map.add_ctrl(code, TreeNode::Action(a))
+    }
+
+    pub fn add_shift(&mut self, code: KeyCode, a: A) {
+        self.map.add_shift(code, TreeNode::Action(a))
     }
 
     pub fn add_char_no_handler(&mut self, a: A) {
