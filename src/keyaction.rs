@@ -43,7 +43,7 @@ impl fmt::Display for KeyCombination {
                     write!(f, "M-")?;
                 }
                 if modifiers.shift {
-                    write!(f, "S-")?;
+                    write!(f, "Shift-")?;
                 }
                 let s = match key_code {
                     KeyCode::Backspace => "Backspace".to_owned(),
@@ -109,6 +109,10 @@ impl<A> KeyMap<A> {
     }
 
     pub fn add_shift(&mut self, code: KeyCode, a: A) {
+        let code = match code {
+            KeyCode::Char(c) => KeyCode::Char(c.to_uppercase().to_string().chars().nth(0).unwrap()),
+            x => x,
+        };
         self.map.insert(
             KeyCombination::Specific(code, Modifiers::default().shift()),
             a,
