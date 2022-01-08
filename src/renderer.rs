@@ -467,6 +467,12 @@ impl Renderer {
                             }
                             if style.attributes != content.style.attributes {
                                 tty.queue(SetAttribute(Attribute::Reset))?;
+                                if let Some(x) = content.style.foreground_color {
+                                    tty.queue(SetForegroundColor(x))?;
+                                }
+                                if let Some(x) = content.style.background_color {
+                                    tty.queue(SetBackgroundColor(x))?;
+                                }
                                 tty.queue(SetAttributes(content.style.attributes))?;
                             }
                             style = content.style;
