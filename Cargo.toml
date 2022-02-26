@@ -6,9 +6,9 @@ edition = "2018"
 
 [dependencies]
 unicode-width = "0.1.8"
-thiserror = "1"
-crossterm = { version = "0.19", features = ["event-stream"] }
-ansi_term = "0.12"
+thiserror = "^1"
+crossterm = { version = "^0.23.0", features = ["event-stream"] }
+ansi_term = "^0.12"
 lazy_static = "*"
 
 [dev-dependencies]

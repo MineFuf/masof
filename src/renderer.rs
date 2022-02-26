@@ -16,14 +16,14 @@ use std::io::Write;
 use thiserror::Error;
 use unicode_width::UnicodeWidthChar;
 
-#[derive(Error, Debug)]
+#[derive(Debug, Error)]
 pub enum Error {
     #[error("CrossTerm error; {0}")]
     CrossTermError(#[from] crossterm::ErrorKind),
     #[error("Invalid logging level")]
     InvalidLoggingLevel,
-    #[error("Io error; {0}")]
-    IoError(#[from] std::io::Error),
+    // #[error("Io error; {0}")]
+    // IoError(#[from] std::io::Error),
 }
 
 #[derive(Clone, Eq, PartialEq)]
@@ -167,10 +167,10 @@ where
     fn draw(&self, renderer: &mut Renderer, x: u16, y: u16) -> u16 {
         let mut m = ContentStyle::default();
         if let Some(x) = self.1.background {
-            m = m.background(x);
+            m.background_color = Some(x);
         }
         if let Some(x) = self.1.foreground {
-            m = m.foreground(x);
+            m.foreground_color = Some(x);
         }
         renderer.draw_str(x, y, self.0.as_ref(), m)
     }
