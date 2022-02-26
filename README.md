@@ -12,9 +12,3 @@ without worrying over flickering.
 - Various widgets with own customizable key bindings and appearance.
 - Separate themes from widget implementation - color scheme is externally
   brought.
-
-### Very basic demo
-
-```
-cargo run --example masof-simple -- -b 10
-```
