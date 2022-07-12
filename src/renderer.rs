@@ -385,6 +385,7 @@ impl Renderer {
         let content_style = ContentStyle {
             background_color: style.background.map(convert_color),
             foreground_color: style.foreground.map(convert_color),
+            underline_color: None,
             attributes: {
                 let attr = crossterm::style::Attributes::default();
 
