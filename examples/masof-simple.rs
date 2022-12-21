@@ -1,6 +1,5 @@
 pub use masof::*;
 
-use crossterm::event::Event;
 use futures::StreamExt;
 use futures::{select, FutureExt};
 use futures_timer::Delay;
@@ -31,12 +30,12 @@ pub struct Opt {
 
 #[derive(Error, Debug)]
 pub enum Error {
-    #[error("CrossTerm error; {0}")]
-    CrossTermError(#[from] crossterm::ErrorKind),
     #[error("Invalid logging level")]
     InvalidLoggingLevel,
+
     #[error("Io error; {0}")]
     IoError(#[from] std::io::Error),
+
     #[error("Renderer error; {0}")]
     DrawBufferError(#[from] masof::renderer::Error),
 }
@@ -114,7 +113,7 @@ impl Main {
             select! {
                 _ = delay.fuse() => {  },
                 maybe_event = reader.next().fuse() => {
-                    if let Some(Ok(event)) = maybe_event {
+                    if let Some(Ok(event)) = &maybe_event {
                         self.renderer.event(&event);
                     }
                     match maybe_event {
@@ -210,7 +209,7 @@ impl Main {
                 i,
                 (
                     &format!("{:?}", i),
-                    ContentStyle::default().foreground(Color::Rgb { r: 255, g: 0, b: 0 }),
+                    ContentStyle::new().with(Color::Rgb { r: 255, g: 0, b: 0 }),
                 ),
             );
         }
@@ -223,7 +222,7 @@ impl Main {
             3,
             (
                 &"test test",
-                ContentStyle::default().foreground(Color::Rgb { r: 0, g: 255, b: 0 }),
+                ContentStyle::new().with(Color::Rgb { r: 0, g: 255, b: 0 }),
             ),
         );
         self.renderer.draw(
@@ -231,7 +230,7 @@ impl Main {
             3,
             (
                 &"test",
-                ContentStyle::default().foreground(Color::Rgb {
+                ContentStyle::new().with(Color::Rgb {
                     r: 0,
                     g: 255,
                     b: 255,

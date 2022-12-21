@@ -7,5 +7,5 @@ pub use readline::ReadLine;
 pub use renderer::Renderer;
 
 // Re-exports
-pub use crossterm::event::{KeyCode, KeyEvent};
-pub use crossterm::style::{Color, ContentStyle};
+pub use crossterm::event::{KeyCode, KeyEvent, Event};
+pub use crossterm::style::{Color, ContentStyle, Stylize};
