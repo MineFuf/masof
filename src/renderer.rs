@@ -16,14 +16,16 @@ use std::io::Write;
 use thiserror::Error;
 use unicode_width::UnicodeWidthChar;
 
-#[derive(Debug, Error)]
+#[derive(Error, Debug)]
 pub enum Error {
-    #[error("CrossTerm error; {0}")]
-    CrossTermError(#[from] crossterm::ErrorKind),
+    // #[error("CrossTerm error; {0}")]
+    // CrossTermError(#[from] crossterm::ErrorKind),
+
     #[error("Invalid logging level")]
     InvalidLoggingLevel,
-    // #[error("Io error; {0}")]
-    // IoError(#[from] std::io::Error),
+
+    #[error("Io error; {0}")]
+    IoError(#[from] std::io::Error),
 }
 
 #[derive(Clone, Eq, PartialEq)]

@@ -67,6 +67,15 @@ impl fmt::Display for KeyCombination {
                     KeyCode::Char(ch) => format!("{}", ch),
                     KeyCode::Null => format!("<null>"),
                     KeyCode::Esc => format!("Esc"),
+                    KeyCode::CapsLock => format!("CapsLock"),
+                    KeyCode::ScrollLock => format!("ScrollLock"),
+                    KeyCode::NumLock => format!("NumLock"),
+                    KeyCode::PrintScreen => format!("PrintScreen"),
+                    KeyCode::Pause => format!("Pause"),
+                    KeyCode::Menu => format!("Menu"),
+                    KeyCode::KeypadBegin => format!("KeypadBegin"),
+                    KeyCode::Media(_) => format!("Media<?>"),
+                    KeyCode::Modifier(_) => format!("Modifier<?>"),
                 };
                 write!(f, "{}", s)
             }
